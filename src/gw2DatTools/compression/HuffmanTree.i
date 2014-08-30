@@ -8,8 +8,8 @@ namespace gw2dt
 namespace compression
 {
 
-template <typename SymbolType, 
-          uint8_t sNbBitsHash, 
+template <typename SymbolType,
+          uint8_t sNbBitsHash,
           uint8_t sMaxCodeBitsLength,
           uint16_t sMaxSymbolValue>
 void HuffmanTree<SymbolType, sNbBitsHash, sMaxCodeBitsLength, sMaxSymbolValue>::clear()
@@ -18,22 +18,23 @@ void HuffmanTree<SymbolType, sNbBitsHash, sMaxCodeBitsLength, sMaxSymbolValue>::
     _symbolValueArrayOffsetArray.fill(0);
     _symbolValueArray.fill(0);
     _codeBitsArray.fill(0);
-    
+
     _symbolValueHashExistenceArray.fill(false);
     _symbolValueHashArray.fill(0);
     _codeBitsHashArray.fill(0);
 }
 
-template <typename SymbolType, 
-          uint8_t sNbBitsHash, 
+template <typename SymbolType,
+          uint8_t sNbBitsHash,
           uint8_t sMaxCodeBitsLength,
           uint16_t sMaxSymbolValue>
 template <typename IntType>
 void HuffmanTree<SymbolType, sNbBitsHash, sMaxCodeBitsLength, sMaxSymbolValue>::readCode(utils::BitArray<IntType>& iBitArray, SymbolType& oSymbol) const
 {
     uint32_t aHashValue;
-    iBitArray.readLazy<sNbBitsHash>(aHashValue);
-    
+
+    iBitArray.readLazy(sNbBitsHash, aHashValue);
+
     if (_symbolValueHashExistenceArray[aHashValue])
     {
         oSymbol = _symbolValueHashArray[aHashValue];
@@ -42,13 +43,13 @@ void HuffmanTree<SymbolType, sNbBitsHash, sMaxCodeBitsLength, sMaxSymbolValue>::
     else
     {
         iBitArray.readLazy(aHashValue);
-        
+
         uint16_t anIndex = 0;
         while (aHashValue < _codeComparisonArray[anIndex])
         {
             ++anIndex;
         }
-        
+
         uint8_t aNbBits = _codeBitsArray[anIndex];
         oSymbol = _symbolValueArray[_symbolValueArrayOffsetArray[anIndex] -
                                         ((aHashValue - _codeComparisonArray[anIndex]) >> (32 - aNbBits))];
@@ -56,19 +57,19 @@ void HuffmanTree<SymbolType, sNbBitsHash, sMaxCodeBitsLength, sMaxSymbolValue>::
     }
 }
 
-template <typename SymbolType, 
+template <typename SymbolType,
           uint8_t sMaxCodeBitsLength,
           uint16_t sMaxSymbolValue>
 void HuffmanTreeBuilder<SymbolType, sMaxCodeBitsLength, sMaxSymbolValue>::clear()
 {
     _symbolListByBitsHeadExistenceArray.fill(false);
     _symbolListByBitsHeadArray.fill(0);
-    
+
     _symbolListByBitsBodyExistenceArray.fill(false);
     _symbolListByBitsBodyArray.fill(0);
 }
 
-template <typename SymbolType, 
+template <typename SymbolType,
           uint8_t sMaxCodeBitsLength,
           uint16_t sMaxSymbolValue>
 void HuffmanTreeBuilder<SymbolType, sMaxCodeBitsLength, sMaxSymbolValue>::addSymbol(SymbolType iSymbol, uint8_t iNbBits)
@@ -86,7 +87,7 @@ void HuffmanTreeBuilder<SymbolType, sMaxCodeBitsLength, sMaxSymbolValue>::addSym
     }
 }
 
-template <typename SymbolType, 
+template <typename SymbolType,
           uint8_t sMaxCodeBitsLength,
           uint16_t sMaxSymbolValue>
 bool HuffmanTreeBuilder<SymbolType, sMaxCodeBitsLength, sMaxSymbolValue>::empty() const
@@ -101,7 +102,7 @@ bool HuffmanTreeBuilder<SymbolType, sMaxCodeBitsLength, sMaxSymbolValue>::empty(
     return true;
 }
 
-template <typename SymbolType, 
+template <typename SymbolType,
           uint8_t sMaxCodeBitsLength,
           uint16_t sMaxSymbolValue>
 template <uint8_t sNbBitsHash>
@@ -111,9 +112,9 @@ bool HuffmanTreeBuilder<SymbolType, sMaxCodeBitsLength, sMaxSymbolValue>::buildH
     {
         return false;
     }
-    
+
     oHuffmanTree.clear();
-    
+
     // Building the HuffmanTree
     uint32_t aCode = 0;
     uint8_t aNbBits = 0;
@@ -122,11 +123,11 @@ bool HuffmanTreeBuilder<SymbolType, sMaxCodeBitsLength, sMaxSymbolValue>::buildH
     while (aNbBits <= sNbBitsHash)
     {
         bool anExistence = _symbolListByBitsHeadExistenceArray[aNbBits];
-        
+
         if (anExistence)
         {
             SymbolType aCurrentSymbol = _symbolListByBitsHeadArray[aNbBits];
-            
+
             while (anExistence)
             {
                 // Processing hash values
@@ -146,11 +147,11 @@ bool HuffmanTreeBuilder<SymbolType, sMaxCodeBitsLength, sMaxSymbolValue>::buildH
                 --aCode;
             }
         }
-        
+
         aCode = (aCode << 1) + 1;
         ++aNbBits;
     }
-    
+
     uint16_t aCodeComparisonArrayIndex = 0;
     uint16_t aSymbolOffset = 0;
 
@@ -158,11 +159,11 @@ bool HuffmanTreeBuilder<SymbolType, sMaxCodeBitsLength, sMaxSymbolValue>::buildH
     while (aNbBits < sMaxCodeBitsLength)
     {
         bool anExistence = _symbolListByBitsHeadExistenceArray[aNbBits];
-        
+
         if (anExistence)
         {
             SymbolType aCurrentSymbol = _symbolListByBitsHeadArray[aNbBits];
-            
+
             while (anExistence)
             {
                 // Registering the code
@@ -185,11 +186,11 @@ bool HuffmanTreeBuilder<SymbolType, sMaxCodeBitsLength, sMaxSymbolValue>::buildH
 
             ++aCodeComparisonArrayIndex;
         }
-        
+
         aCode = (aCode << 1) + 1;
         ++aNbBits;
     }
-    
+
     return true;
 }
 
